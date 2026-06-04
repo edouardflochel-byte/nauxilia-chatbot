@@ -19,7 +19,7 @@ export default function handler(req, res) {
   <script>
     window.NAUXILIA_API_URL = 'https://nauxilia-chatbot.vercel.app';
   </script>
-  <script src="https://nauxilia-chatbot.vercel.app/public/chatbot.js"></script>
+  <script src="https://nauxilia-chatbot.vercel.app/api/widget.js"></script>
 </body>
 </html>
   `);
