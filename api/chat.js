@@ -123,7 +123,9 @@ RÈGLES ABSOLUES
     const data = await response.json();
     const reply = data.content[0].text;
 
-    return res.status(200).json({ reply, model });
+    const cleanReply = reply.replace(/\*\*(.*?)\*\*/g, '$1').replace(/\*(.*?)\*/g, '$1');
+
+    return res.status(200).json({ reply: cleanReply, model });
 
   } catch (error) {
     console.error('Error:', error);
