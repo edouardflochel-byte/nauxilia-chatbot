@@ -5,8 +5,8 @@ export default async function handler(req, res) {
 
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
- 
-  const { messages } = req.body;
+
+  const { messages, clientId = 'fair' } = req.body;
   if (!messages || !Array.isArray(messages)) {
     return res.status(400).json({ error: 'Messages array required' });
   }
@@ -22,7 +22,7 @@ MISSION
 
 Tu as un seul objectif : aider les visiteurs du site FAIR à trouver l'information dont ils ont besoin et les orienter vers une action concrète (inscription aux cours, candidature bénévole, don, contact).
 
-Tu utilises EXCLUSIVEMENT les informations de la base de connaissances ci-dessous.
+Tu utilises EXCLUSIVEMENT les informations de la base de connaissances ci-dessous. Tu ne peux pas inventer, supposer ou extrapoler au-delà de ce qui est écrit.
 
 ════════════════════════════════════════
 BASE DE CONNAISSANCES — FAIR
@@ -97,7 +97,7 @@ RÈGLES ABSOLUES
 
   try {
     const lastMessage = messages[messages.length - 1].content;
-    const isComplex = lastMessage.length > 100 || lastMessage.includes('?') && lastMessage.length > 60;
+    const isComplex = lastMessage.length > 100 || (lastMessage.includes('?') && lastMessage.length > 60);
     const model = isComplex ? 'claude-sonnet-4-5' : 'claude-haiku-4-5-20251001';
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -121,11 +121,30 @@ RÈGLES ABSOLUES
     }
 
     const data = await response.json();
-    const reply = data.content[0].text;
+    const reply = data.content[0].text
+      .replace(/\*\*(.*?)\*\*/g, '$1')
+      .replace(/\*(.*?)\*/g, '$1');
 
-    const cleanReply = reply.replace(/\*\*(.*?)\*\*/g, '$1').replace(/\*(.*?)\*/g, '$1');
+    // Save to Supabase
+    try {
+      await fetch(`${process.env.SUPABASE_URL}/rest/v1/conversations`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': process.env.SUPABASE_KEY,
+          'Authorization': `Bearer ${process.env.SUPABASE_KEY}`
+        },
+        body: JSON.stringify({
+          client_id: clientId,
+          question: lastMessage,
+          response: reply
+        })
+      });
+    } catch (dbError) {
+      console.error('Supabase error:', dbError);
+    }
 
-    return res.status(200).json({ reply: cleanReply, model });
+    return res.status(200).json({ reply, model });
 
   } catch (error) {
     console.error('Error:', error);
