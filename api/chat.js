@@ -93,6 +93,7 @@ RÈGLES ABSOLUES
 5. Réponds dans la langue du visiteur automatiquement.
 6. Ne jamais commencer par "Je".
 7. Ton : chaleureux, bienveillant, phrases courtes et simples.
+8. Ne jamais utiliser d'emojis dans les réponses.
 `;
 
   try {
