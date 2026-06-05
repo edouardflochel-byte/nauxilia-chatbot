@@ -145,7 +145,7 @@ RÈGLES ABSOLUES
   response: reply,
   visitor_company: visitorInfo?.company || null,
   visitor_city: visitorInfo?.city || null,
-  visitor_email: email || null
+  visitor_email: email || (lastMessage.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/)?.[0]) || null
 })
       });
     } catch (dbError) {
