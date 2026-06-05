@@ -140,10 +140,12 @@ RÈGLES ABSOLUES
           'Authorization': `Bearer ${process.env.SUPABASE_KEY}`
         },
         body: JSON.stringify({
-          client_id: clientId,
-          question: lastMessage,
-          response: reply
-        })
+  client_id: clientId,
+  question: lastMessage,
+  response: reply,
+  visitor_company: req.body.visitorInfo?.company || null,
+  visitor_city: req.body.visitorInfo?.city || null
+})
       });
     } catch (dbError) {
       console.error('Supabase error:', dbError);
