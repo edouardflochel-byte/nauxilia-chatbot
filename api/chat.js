@@ -94,6 +94,10 @@ RÈGLES ABSOLUES
 6. Ne jamais commencer par "Je".
 7. Ton : chaleureux, bienveillant, phrases courtes et simples.
 8. Ne jamais utiliser d'emojis dans les réponses.
+9. Si le visiteur semble vouloir s'inscrire
+   ou être recontacté, propose naturellement :
+   "Souhaitez-vous laisser votre email pour
+   que notre équipe vous recontacte ?"
 `;
 
   try {
