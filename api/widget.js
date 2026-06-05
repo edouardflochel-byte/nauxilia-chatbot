@@ -55,12 +55,12 @@ export default function handler(req, res) {
     <div id="nauxilia-box">
       <div id="nauxilia-header">
         <span>Assistant FAIR</span>
-        <button id="nauxilia-close">×</button>
+        <button id="nauxilia-close">x</button>
       </div>
       <div id="nauxilia-messages"></div>
       <div id="nauxilia-input-area">
         <input id="nauxilia-input" type="text" placeholder="Posez votre question..." />
-        <button id="nauxilia-send">➤</button>
+        <button id="nauxilia-send">></button>
       </div>
       <div id="nauxilia-powered">Powered by Nauxilia</div>
     </div>
@@ -74,6 +74,26 @@ export default function handler(req, res) {
   const messages = document.getElementById('nauxilia-messages');
   let history = [];
   let greeted = false;
+  let visitorInfo = {};
+  let messageCount = 0;
+
+  // Get visitor IP info
+  async function getVisitorInfo() {
+    try {
+      const res = await fetch('https://ipinfo.io/json');
+      const data = await res.json();
+      visitorInfo = {
+        company: data.org || 'Inconnu',
+        city: data.city || '',
+        country: data.country || '',
+        ip: data.ip || ''
+      };
+    } catch(e) {
+      visitorInfo = { company: 'Inconnu', city: '', country: '', ip: '' };
+    }
+  }
+
+  getVisitorInfo();
 
   function addMsg(text, role) {
     const div = document.createElement('div');
@@ -99,12 +119,18 @@ export default function handler(req, res) {
     addMsg(text, 'user');
     history.push({ role: 'user', content: text });
     input.value = '';
+    messageCount++;
     const typing = addMsg('...', 'bot');
+
     try {
       const res = await fetch(VERCEL_URL + '/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: history })
+        body: JSON.stringify({
+          messages: history,
+          clientId: 'fair',
+          visitorInfo: visitorInfo
+        })
       });
       const data = await res.json();
       typing.remove();
@@ -112,12 +138,19 @@ export default function handler(req, res) {
         addMsg(data.reply, 'bot');
         history.push({ role: 'assistant', content: data.reply });
         if (history.length > 20) history = history.slice(-20);
+
+        // Ask for email after 3 messages
+        if (messageCount === 3) {
+          setTimeout(() => {
+            addMsg("Pour vous envoyer plus d'informations ou être recontacté par notre equipe, pouvez-vous nous laisser votre email ?", 'bot');
+          }, 1000);
+        }
       } else {
-        addMsg("Une erreur est survenue. Veuillez réessayer.", 'bot');
+        addMsg("Une erreur est survenue. Veuillez reessayer.", 'bot');
       }
     } catch(e) {
       typing.remove();
-      addMsg("Impossible de me connecter. Vérifiez votre connexion.", 'bot');
+      addMsg("Impossible de me connecter. Verifiez votre connexion.", 'bot');
     }
   }
 
