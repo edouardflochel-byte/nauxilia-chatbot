@@ -114,24 +114,29 @@ export default function handler(req, res) {
   }
 
   async function sendMessage() {
-    const text = input.value.trim();
-    if (!text) return;
-    addMsg(text, 'user');
-    history.push({ role: 'user', content: text });
-    input.value = '';
-    messageCount++;
-    const typing = addMsg('...', 'bot');
+  const text = input.value.trim();
+  if (!text) return;
+  addMsg(text, 'user');
+  history.push({ role: 'user', content: text });
+  input.value = '';
+  messageCount++;
+  const typing = addMsg('...', 'bot');
 
-    try {
-      const res = await fetch(VERCEL_URL + '/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          messages: history,
-          clientId: 'fair',
-          visitorInfo: visitorInfo
-        })
-      });
+  // Détecter email dans le message
+  const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
+  const detectedEmail = text.match(emailRegex)?.[0] || null;
+
+  try {
+    const res = await fetch(VERCEL_URL + '/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        messages: history,
+        clientId: 'fair',
+        visitorInfo: visitorInfo,
+        email: detectedEmail
+      })
+    });
       const data = await res.json();
       typing.remove();
       if (data.reply) {
